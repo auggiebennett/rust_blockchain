@@ -105,4 +105,24 @@ impl App {
     }
 
     // always choose the longest valid chain
+    fn choose_chain(%mut self, local: Vec, remote: Vec) -> Vec {
+        let is_local_valid = self.is_chain_valid(&local); //validate local
+        let is_remote_valid = self.is_chain_valid(&remote); //validate remote
+
+        if is_local_valid && is_remote_valid { //both valid
+            if local.len() >= remote.len() {
+                local
+            } else {
+                remote
+            }
+        } else if is_remote_valid && !is_local_valid {
+            remote
+        } else if !is_remote_valid && is_local_valid {
+            local
+        } else {
+            panic!("local and remote chains are both invalid");
+        }
+    }
 }
+
+
