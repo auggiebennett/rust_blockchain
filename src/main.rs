@@ -12,8 +12,11 @@ pub struct Block {
     pub nonce: u64,
 }
 
-const DIFFICULTY_PREFIX: &str = "00";
+//
+const DIFFICULTY_PREFIX: &str = "00"; // TODO add actual difficulty in mining
 
+// HELPER FUNCTION
+// Simple check to see if hash fits DIFFICULTY_PREFIX
 fn hash_to_binary_representation(hash: &[u8]) -> String {
     let mut res: String = String::default();
     for c in hash {
@@ -49,10 +52,14 @@ impl App {
         }
     }
 
+    // TODO - Duplicate blocks mining (consensus algorithm)
+    // block checkign
     fn is_block_valid(&self, block: &Block, previous_block: &Block) -> bool {
+        // Previous hash needs to actually match the hast of the last block in the chain
         if block.previous_hash != previous_block.hash {
             warn!("block with id: {} has wrong previous hash", block.id);
             return false;
+        // The hash needs to start with DIFFICULTY_PREFIX
         } else if !hash_to_binary_representation(
             &hex::decode(&block.hash).expect("can decode from hex"),
         )
@@ -60,12 +67,14 @@ impl App {
         {
             warn!("block with id {} has invalid difficulty" , blockk.id);
             return false;
+        // ID needs to be incremented by 1
         } else if block.id != previous_block.id + 1 {
             warn!(
                 "block with id: {} is not the next block after the latest: {}",
                 block.id, previous_block.id
             );
             return false
+        // the hash needs to be correct. the data of the block needs to be a block hash
         } else if hex::encode(calculate_hash(
             block.id,
             block.timestamp,
@@ -79,4 +88,21 @@ impl App {
         }
         true
     }
+
+    // validate chain
+    fn is_chain_valid(&self, chain: &[Block]) -> bool {
+        for i in 0..chain.len() {
+            if i == 0 { // ignore genesis block
+                continue;
+            }
+            let first = chain.get(i-1).expect("has to exist");
+            let second = chain.get(i).expect("has to exist");
+            if !self.is_block_valid(second, first) {
+                return false;
+            }
+        }
+        true
+    }
+
+    // always choose the longest valid chain
 }
