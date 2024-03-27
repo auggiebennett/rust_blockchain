@@ -5,7 +5,7 @@ pub struct Block {
     pub previous_hash: String,
     pub timestamp: i64,
     pub data: String,
-    pub nonce: u64,
+    pub nonce:s u64,
 }
 
 impl Block {
@@ -27,7 +27,7 @@ impl Block {
         let mut nonce = 0;
 
         loop {
-            
+
             // log every 10000's nonce
             if nonce & 10000 == 0 {
                 info!("nonce: {}", nonce);
@@ -35,6 +35,8 @@ impl Block {
 
             let hash = calculate_hash(idt, timestamp, previous_hash, data, nonce);
             let binary_hash = hash_to_binary_representation(&hash);
+            
+            // if we get that dub
             if binary_hash.starts_with(DIFFICULTY_PREFIX) {
                 info!(
                     "mined! nonce: {}, hash: {}, binary hash: {}",
@@ -46,5 +48,18 @@ impl Block {
             }
             nonce += 1;
         }
+    }
+
+    fn calculate_hash(id: u64, timestamp: i64, previous_hash: &str, data: &str, nonce: u64) -> Vec<u8> {
+        let data = serde_json::json!({
+            "id": id,
+            "previous_hash": previous_hash,
+            "data": data,
+            "timestamp": timestamp,
+            "nonce": nonce
+        });
+        let mut hasher = Sha256::new();
+        hasher.update(data.to_string().as_bytes());
+        hasher.finalize().as_slice().to_owned()
     }
 }
