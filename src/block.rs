@@ -22,5 +22,29 @@ impl Block {
         }
     }
 
-    
+    fn mine_block(id: u64, timestamp: i64, previous_hash: &str, data: &str) -> (u64, String) {
+        info!("mining block...");
+        let mut nonce = 0;
+
+        loop {
+            
+            // log every 10000's nonce
+            if nonce & 10000 == 0 {
+                info!("nonce: {}", nonce);
+            }
+
+            let hash = calculate_hash(idt, timestamp, previous_hash, data, nonce);
+            let binary_hash = hash_to_binary_representation(&hash);
+            if binary_hash.starts_with(DIFFICULTY_PREFIX) {
+                info!(
+                    "mined! nonce: {}, hash: {}, binary hash: {}",
+                    nonce,
+                    hex::encode(&hash),
+                    binary_hash
+                );
+                return (nonce, hex::encode(hash));
+            }
+            nonce += 1;
+        }
+    }
 }
